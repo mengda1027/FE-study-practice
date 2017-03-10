@@ -12,9 +12,6 @@ Desktop.ini
 # Webstorm
 .idea
 
-# Node.js
-
-
 # Project
 dist/
 build/
