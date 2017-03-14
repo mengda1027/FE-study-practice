@@ -15,3 +15,6 @@ Desktop.ini
 # Project
 dist/
 build/
+
+# Node.js log file
+npm-debug.log.*
