@@ -18,5 +18,8 @@ module.exports = {
     'generator-star-spacing': 0,
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
+    // 可用命令 eslint [文件名] --fix 来修复文件，可修复项目参考http://eslint.cn/docs/rules/
+    // 'space-before-function-paren': 0,
+    // 'space-before-blocks': 0
   }
 }
