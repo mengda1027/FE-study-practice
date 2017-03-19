@@ -3,7 +3,7 @@
     "name": "粥品香坊（回龙观）",
     "description": "蜂鸟专送",
     "deliveryTime": 38,
-    "score": 4.2,
+    "score": 4.6,
     "serviceScore": 4.1,
     "foodScore": 4.3,
     "rankRate": 69.2,
@@ -21,10 +21,7 @@
         "type": 1,
         "description": "VC无限橙果汁全场8折"
       },
-      {
-        "type": 2,
-        "description": "单人精彩套餐"
-      },
+
       {
         "type": 3,
         "description": "该商家支持发票,请下单写好发票抬头"

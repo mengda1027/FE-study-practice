@@ -1,3 +1,19 @@
+body,heml {
+  line-height :1
+  font-weight :200
+  font-family :'PingFang SC','STHeitiSC-Light','Helvetica-light','Arial','SansSerif'
+}
+
+.clearfix
+  display inline-block
+  &:after
+    clear both
+    display block
+    line-height  0px
+    height 0px
+    content '.'
+    visibility hidden
+
 @media (-webkit-min-device-pixel-ratio: 1.5),(min-device-pixel-ratio: 1.5)
   .border-1px
     &::after
