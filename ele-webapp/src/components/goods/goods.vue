@@ -3,7 +3,7 @@
     <div class="menu-wrapper" v-el:menu-scroll>
       <ul>
         <li v-for="item in goods" class="menu-item" :class="{'current':currentIndex === $index}"
-            @click="selectItem($index,$event)">
+            @click.stop="selectItem($index,$event)">
           <span class="text"><span class="icon" :class="classMap[item.type]" v-show="item.type>0 "></span>{{item.name}}</span>
         </li>
       </ul>
@@ -13,7 +13,7 @@
         <li v-for="item in goods" class="goods-list good-list-hook">
           <h1 class="title">{{item.name}}</h1>
           <ul>
-            <li v-for="food in item.foods" class="food-item">
+            <li v-for="food in item.foods" class="food-item" @click="selectFood(food,$event)">
               <div class="icon">
                 <img height="57px" width="57px" :src="food.icon">
               </div>
@@ -42,12 +42,14 @@
   </div>
   <shopcart v-ref:shopcart :min-price="seller.minPrice" :delivery-price="seller.deliveryPrice"
             :select-foods="selectFoods"></shopcart>
+  <food v-ref:food :food="selectedFood"></food>
 </template>
 
 <script type="text/ecmascript-6">
   import BScroll from 'better-scroll'
   import shopcart from 'components/shopcart/shopcart.vue'
   import cartcontrol from 'components/cartcontrol/cartcontrol.vue'
+  import food from 'components/food/food.vue'
 
   let ERR_OK = 0
 
@@ -62,7 +64,7 @@
         goods: [],
         heightList: [],
         scrollY: 0,
-        timeOut4Scroll: null
+        selectedFood: {}
       }
     },
     computed: {
@@ -103,6 +105,13 @@
       this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee']
     },
     methods: {
+      selectFood (selectedFood, event) {
+        if (!event._constructed) {
+          return
+        }
+        this.selectedFood = selectedFood
+        this.$refs.food.show()
+      },
       _intialScroll () {
         this.menuScroll = new BScroll(this.$els.menuScroll, {
           // 设置为true则防止阻止原生点击事件
@@ -139,11 +148,12 @@
     },
     components: {
       shopcart,
-      cartcontrol
+      cartcontrol,
+      food
     },
     events: {
       'cart.add' (target) {
-      // 通过_drop调用子组件方法
+        // 通过_drop调用子组件方法
         this._drop(target)
       }
     }

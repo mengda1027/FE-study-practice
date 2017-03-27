@@ -1,10 +1,10 @@
 <template>
   <div class="cartcontrol">
-    <div class="decrease" v-show="food.count>0" @click="decreaseCart" transition="move">
+    <div class="decrease" v-show="food.count>0" @click.stop="decreaseCart" transition="move">
       <span class="icon-remove_circle_outline inner"></span>
     </div>
     <div class="count" v-show="food.count>0">{{food.count}}</div>
-    <div class="increase icon-add_circle" @click="addCart"></div>
+    <div class="increase icon-add_circle" @click.stop="addCart($event)"></div>
   </div>
 </template>
 
@@ -27,6 +27,7 @@
         } else {
           this.food.count++
         }
+        // 小球抛物线动画
         this.$dispatch('cart.add', event.target)
       },
       decreaseCart (event) {

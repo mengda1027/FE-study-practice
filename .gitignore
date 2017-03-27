@@ -18,3 +18,4 @@ build/
 
 # Node.js log file
 npm-debug.log.*
+npm-debug.log
