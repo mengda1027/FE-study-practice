@@ -68,6 +68,7 @@
   const ALL = 2
 
   let ERR_OK = 0
+
   export default {
     props: {
       seller: {
