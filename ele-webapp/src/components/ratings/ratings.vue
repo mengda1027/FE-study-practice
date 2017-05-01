@@ -1,5 +1,5 @@
 <template>
-  <div class="ratings" v-el:ratings-scroll>
+  <div class="ratings" ref="ratingsScroll">
     <div class="ratings-content">
       <div class="overview">
         <div class="overview-left">
@@ -29,7 +29,7 @@
         </div>
       </div>
       <split></split>
-      <ratingselect :ratings="ratings" :only-content="onlyContent" :desc="desc"
+      <ratingselect @select="select" @toggle="toggle" :ratings="ratings" :only-content="onlyContent" :desc="desc"
                     :select-type="selectType"></ratingselect>
       <div class="rating-wrapper">
         <ul>
@@ -46,7 +46,7 @@
               <p class="comment">{{rating.text}}</p>
               <div class="recommends">
                 <i :class="{'icon-thumb_up':(rating.rateType === 0),'icon-thumb_down':(rating.rateType === 1)}"></i>
-                <span class="recommend" v-for="recommend in rating.recommend"
+                <span class="recommend" v-for="recommend in rating.recommend" v-if="recommend.index<3"
                       v-show="rating.recommend && rating.recommend.length>0">{{recommend}}</span>
               </div>
               <div class="time">{{rating.rateTime | formatDate}}</div>
@@ -59,10 +59,10 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import star from 'components/star/star.vue'
-  import ratingselect from 'components/ratingselect/ratingselect.vue'
-  import split from 'components/split/split.vue'
-  import {dateFormat} from 'common/js/dateFormat.js'
+  import star from '@/components/star/star.vue'
+  import ratingselect from '@/components/ratingselect/ratingselect.vue'
+  import split from '@/components/split/split.vue'
+  import {dateFormat} from '@/common/js/dateFormat.js'
   import BScroll from 'better-scroll'
 
   const ALL = 2
@@ -96,7 +96,7 @@
           this.ratings = response.data
           this.$nextTick(() => {
             if (!this.ratingsScroll) {
-              this.ratingsScroll = new BScroll(this.$els.ratingsScroll, {
+              this.ratingsScroll = new BScroll(this.$refs.ratingsScroll, {
                 click: true
               })
             } else {
@@ -116,21 +116,19 @@
         return dateFormat(new Date(time), 'yyyy-MM-dd HH:mm')
       }
     },
-    events: {
-      'ratingtype.select' (type) {
+    methods: {
+      select (type) {
         this.selectType = type
         this.$nextTick(() => {
           this.ratingsScroll.refresh()
         })
       },
-      'content.toggle' (onlyContent) {
+      toggle (onlyContent) {
         this.onlyContent = onlyContent
         this.$nextTick(() => {
           this.ratingsScroll.refresh()
         })
-      }
-    },
-    methods: {
+      },
       // 控制每条评价是否显示
       needShow (rateType, text) {
         if (this.selectType === ALL) {

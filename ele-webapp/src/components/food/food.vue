@@ -1,67 +1,67 @@
 <template>
-  <div class="food" v-show="showFood" transition="moveLeft" v-el:food-scroll>
-    <div class="food-content">
-      <div class="img-header">
-        <img :src="food.image">
-        <i class="icon-arrow_lift icon" @click="back"></i>
-      </div>
-      <div class="content">
-        <h1 class="name">{{food.name}}</h1>
-        <div class="extra">
-          <span>月售{{food.sellCount}}份</span><span>好评率{{food.rating}}%</span>
+  <transition name="moveLeft">
+    <div class="food" v-show="showFood" ref="foodScroll">
+      <div class="food-content">
+        <div class="img-header">
+          <img :src="food.image">
+          <i class="icon-arrow_lift icon" @click="back"></i>
         </div>
-        <div class="price">
-          <span class="newPrice"><span class="unit">￥</span>{{food.price}}</span><span class="oldPrice"
-                                                                                       v-show="food.oldPrice !== ''"><span
-          class="unit">￥</span>{{food.oldPrice}}</span>
+        <div class="content">
+          <h1 class="name">{{food.name}}</h1>
+          <div class="extra">
+            <span>月售{{food.sellCount}}份</span><span>好评率{{food.rating}}%</span>
+          </div>
+          <div class="price">
+            <span class="newPrice"><span class="unit">￥</span>{{food.price}}</span><span class="oldPrice"
+                                                                                         v-show="food.oldPrice !== ''"><span
+            class="unit">￥</span>{{food.oldPrice}}</span>
+          </div>
+          <div class="cartcontrol-wrapper" v-show="food.count !== 0">
+            <cartcontrol @add="_drop" :food="food"></cartcontrol>
+          </div>
+          <transition name="fade">
+            <div class="buy" v-show="food.count === 0 || !food.count" @click.stop.prevent="addFirst($event)">加入购物车
+            </div>
+          </transition>
         </div>
-        <div class="cartcontrol-wrapper" v-show="food.count !== 0">
-          <cartcontrol :food="food"></cartcontrol>
+        <split v-show="food.info"></split>
+        <div class="info" v-show="food.info">
+          <h1 class="title">商品介绍</h1>
+          <p class="text">{{food.info}}</p>
         </div>
-        <div class="buy" v-show="food.count === 0 || !food.count" @click.stop.prevent="addFirst($event)"
-             transition="fade">加入购物车
-
-
-
-        </div>
-      </div>
-      <split v-show="food.info"></split>
-      <div class="info" v-show="food.info">
-        <h1 class="title">商品介绍</h1>
-        <p class="text">{{food.info}}</p>
-      </div>
-      <split v-show="food.ratings"></split>
-      <div class="rating-wrapper">
-        <h1 class="title">商品评价</h1>
-        <ratingselect :ratings="food.ratings" :only-content="onlyContent" :desc="desc"
-                      :select-type="selectType"></ratingselect>
-        <div class="rating-list">
-          <ul v-show="food.ratings && food.ratings.length !== 0">
-            <li class="item" v-for="rating in food.ratings" v-show="needShow(rating.rateType , rating.text)">
-              <div class="time">{{rating.rateTime | formatDate}}</div>
-              <div class="user">
-                <span class="name">{{rating.username}}</span><img :src="rating.avatar" class="avatar">
-              </div>
-              <div class="item-content">
-                <i :class="{'icon-thumb_up':rating.rateType === 0,'icon-thumb_down':rating.rateType === 1}"></i>
-                <span class="text">{{rating.text}}</span>
-              </div>
-            </li>
-          </ul>
-          <div class="no-text" v-show="!food.ratings || food.ratings.length === 0">暂无内容</div>
+        <split v-show="food.ratings"></split>
+        <div class="rating-wrapper">
+          <h1 class="title">商品评价</h1>
+          <ratingselect @select="select" @toggle="toggle" :ratings="food.ratings" :only-content="onlyContent" :desc="desc"
+                        :select-type="selectType"></ratingselect>
+          <div class="rating-list">
+            <ul v-show="food.ratings && food.ratings.length !== 0">
+              <li class="item" v-for="rating in food.ratings" v-show="needShow(rating.rateType , rating.text)">
+                <div class="time">{{rating.rateTime | formatDate}}</div>
+                <div class="user">
+                  <span class="name">{{rating.username}}</span><img :src="rating.avatar" class="avatar">
+                </div>
+                <div class="item-content">
+                  <i :class="{'icon-thumb_up':rating.rateType === 0,'icon-thumb_down':rating.rateType === 1}"></i>
+                  <span class="text">{{rating.text}}</span>
+                </div>
+              </li>
+            </ul>
+            <div class="no-text" v-show="!food.ratings || food.ratings.length === 0">暂无内容</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script type="text/ecmascript-6">
   import Vue from 'vue'
   import BScroll from 'better-scroll'
-  import cartcontrol from 'components/cartcontrol/cartcontrol.vue'
-  import split from 'components/split/split.vue'
-  import ratingselect from 'components/ratingselect/ratingselect.vue'
-  import {dateFormat} from 'common/js/dateFormat.js'
+  import cartcontrol from '@/components/cartcontrol/cartcontrol.vue'
+  import split from '@/components/split/split.vue'
+  import ratingselect from '@/components/ratingselect/ratingselect.vue'
+  import {dateFormat} from '@/common/js/dateFormat.js'
 
   const ALL = 2
 
@@ -77,7 +77,7 @@
         // 是否选择全部评价
         selectType: ALL,
         // 是否显示只有评论的评价
-        onlyContent: true,
+        onlyContent: false,
         desc: {
           positive: '推荐',
           negative: '吐槽',
@@ -86,6 +86,9 @@
       }
     },
     methods: {
+      _drop (el) {
+        this.$emit('add', el)
+      },
       // 控制每条评价是否显示
       needShow (rateType, text) {
         if (this.selectType === ALL) {
@@ -107,7 +110,7 @@
         }
         Vue.set(this.food, 'count', 1)
         // 小球抛物线动画
-        this.$dispatch('cart.add', event.target)
+        this.$emit('add', event.target)
       },
       show () {
         this.showFood = true
@@ -116,7 +119,7 @@
         this.selectType = ALL
         this.$nextTick(() => {
           if (!this.foodScroll) {
-            this.foodScroll = new BScroll(this.$els.foodScroll, {
+            this.foodScroll = new BScroll(this.$refs.foodScroll, {
               click: true
             })
           } else {
@@ -126,6 +129,18 @@
       },
       back () {
         this.showFood = false
+      },
+      select (type) {
+        this.selectType = type
+        this.$nextTick(() => {
+          this.foodScroll.refresh()
+        })
+      },
+      toggle (onlyContent) {
+        this.onlyContent = onlyContent
+        this.$nextTick(() => {
+          this.foodScroll.refresh()
+        })
       }
     },
     filters: {
@@ -137,20 +152,6 @@
       cartcontrol,
       split,
       ratingselect
-    },
-    events: {
-      'ratingtype.select' (type) {
-        this.selectType = type
-        this.$nextTick(() => {
-          this.foodScroll.refresh()
-        })
-      },
-      'content.toggle' (onlyContent) {
-        this.onlyContent = onlyContent
-        this.$nextTick(() => {
-          this.foodScroll.refresh()
-        })
-      }
     }
   }
 </script>
@@ -165,10 +166,10 @@
     width 100%
     background-color rgb(255, 255, 255)
     overflow hidden
-    &.moveLeft-transition
+    &.moveLeft-enter-active, &.moveLeft-leave-active
       transition all 0.2s linear
       transform translate3d(0, 0, 0)
-    &.moveLeft-enter, &.moveLeft-leave
+    &.moveLeft-enter, &.moveLeft-leave-to
       transform translate3d(100%, 0, 0)
     .food-content
       .img-header
@@ -230,10 +231,10 @@
           font-size 10px
           border-radius 12px
           background-color rgb(0, 160, 220)
-          &.fade-transition
+          &.fade-enter-active, &.fade-leave-active
             transition all 0.2s linear
             opacity 1
-          &.fade-enter, &.fade-leave
+          &.fade-enter, &.fade-leave-to
             opacity 0
         .cartcontrol-wrapper
           position absolute

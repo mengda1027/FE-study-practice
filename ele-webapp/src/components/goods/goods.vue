@@ -1,14 +1,14 @@
 <template>
   <div class="goods">
-    <div class="menu-wrapper" v-el:menu-scroll>
+    <div class="menu-wrapper" ref="menuScroll">
       <ul>
-        <li v-for="item in goods" class="menu-item" :class="{'current':currentIndex === $index}"
-            @click.stop="selectItem($index,$event)">
+        <li v-for="(item, index) in goods" class="menu-item" :class="{'current':currentIndex === index}"
+            @click.stop="selectItem(index,$event)">
           <span class="text"><span class="icon" :class="classMap[item.type]" v-show="item.type>0 "></span>{{item.name}}</span>
         </li>
       </ul>
     </div>
-    <div class="foods-wrapper" v-el:foods-scroll>
+    <div class="foods-wrapper" ref="foodsScroll">
       <ul>
         <li v-for="item in goods" class="goods-list good-list-hook">
           <h1 class="title">{{item.name}}</h1>
@@ -31,7 +31,7 @@
                   class="unit">￥</span>{{food.oldPrice}}</span>
                 </div>
                 <div class="cartcontrol-wrapper">
-                  <cartcontrol :food="food"></cartcontrol>
+                  <cartcontrol @add="_drop" :food="food"></cartcontrol>
                 </div>
               </div>
             </li>
@@ -39,17 +39,17 @@
         </li>
       </ul>
     </div>
+    <shopcart ref="shopcart" :min-price="seller.minPrice" :delivery-price="seller.deliveryPrice"
+              :select-foods="selectFoods"></shopcart>
+    <food @add="_drop" ref="food" :food="selectedFood"></food>
   </div>
-  <shopcart v-ref:shopcart :min-price="seller.minPrice" :delivery-price="seller.deliveryPrice"
-            :select-foods="selectFoods"></shopcart>
-  <food v-ref:food :food="selectedFood"></food>
 </template>
 
 <script type="text/ecmascript-6">
   import BScroll from 'better-scroll'
-  import shopcart from 'components/shopcart/shopcart.vue'
-  import cartcontrol from 'components/cartcontrol/cartcontrol.vue'
-  import food from 'components/food/food.vue'
+  import shopcart from '@/components/shopcart/shopcart.vue'
+  import cartcontrol from '@/components/cartcontrol/cartcontrol.vue'
+  import food from '@/components/food/food.vue'
 
   let ERR_OK = 0
 
@@ -113,18 +113,18 @@
         this.$refs.food.show()
       },
       _intialScroll () {
-        this.menuScroll = new BScroll(this.$els.menuScroll, {
+        this.menuScroll = new BScroll(this.$refs.menuScroll, {
           // 设置为true则防止阻止原生点击事件
           click: true
         })
-        this.foodsScroll = new BScroll(this.$els.foodsScroll, {click: true, probeType: 3})
+        this.foodsScroll = new BScroll(this.$refs.foodsScroll, {click: true, probeType: 3})
         this.foodsScroll.on('scroll', (pos) => {
           this.scrollY = Math.abs(Math.round(pos.y))
         })
       },
       _caculateHeight () {
         let height = 0
-        let goodItem = this.$els.foodsScroll.getElementsByClassName('good-list-hook')
+        let goodItem = this.$refs.foodsScroll.getElementsByClassName('good-list-hook')
         this.heightList.push(height)
         for (let i = 0; i < goodItem.length; i++) {
           height += goodItem[i].clientHeight
@@ -142,7 +142,7 @@
           return
         }
         this.foodsScroll.scrollTo(0, -this.heightList[index], 500)
-//        let targets = this.$els.foodsScroll.getElementsByClassName('good-list-hook')
+//        let targets = this.$refs.foodsScroll.getElementsByClassName('good-list-hook')
 //        this.foodsScroll.scrollToElement(targets[index], 500)
       }
     },
@@ -150,12 +150,6 @@
       shopcart,
       cartcontrol,
       food
-    },
-    events: {
-      'cart.add' (target) {
-        // 通过_drop调用子组件方法
-        this._drop(target)
-      }
     }
   }
 </script>

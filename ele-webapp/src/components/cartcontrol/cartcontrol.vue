@@ -1,8 +1,10 @@
 <template>
   <div class="cartcontrol">
-    <div class="decrease" v-show="food.count>0" @click.stop="decreaseCart" transition="move">
-      <span class="icon-remove_circle_outline inner"></span>
-    </div>
+    <transition name="move">
+      <div class="decrease" v-show="food.count>0" @click.stop="decreaseCart" transition="move">
+        <span class="icon-remove_circle_outline inner"></span>
+      </div>
+    </transition>
     <div class="count" v-show="food.count>0">{{food.count}}</div>
     <div class="increase icon-add_circle" @click.stop="addCart($event)"></div>
   </div>
@@ -28,7 +30,7 @@
           this.food.count++
         }
         // 小球抛物线动画
-        this.$dispatch('cart.add', event.target)
+        this.$emit('add', event.target)
       },
       decreaseCart (event) {
         if (!event._constructed || this.food.count <= 0) {
@@ -36,8 +38,6 @@
         }
         this.food.count--
       }
-    },
-    created () {
     }
   }
 </script>
@@ -53,16 +53,16 @@
         color rgb(0, 160, 220)
         line-height 24px
         font-size 24px
-      &.move-transition
+      &.move-enter-active, &.move-leave-active
+        transition all .4s linear
         opacity 1
         transform translate3d(0, 0, 0)
-        transition all 0.5s linear
         .inner
-          transition all 0.5s linear
+          transition all .4s linear
           transform rotate(0)
-      &.move-enter, &.move-leave
+      &.move-enter, &.move-leave-to
         opacity 0
-        transform translate3d(30px, 0, 0)
+        transform translate3d(48px, 0, 0)
         .inner
           transform rotate(180deg)
     .count

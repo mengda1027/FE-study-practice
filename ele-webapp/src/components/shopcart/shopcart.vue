@@ -14,33 +14,43 @@
       </div>
     </div>
     <div class="balls-container">
-      <div transition="drop" class="ball" v-for="ball in balls" v-show="ball.show">
-        <div class="inner inner-hook"></div>
+      <div v-for="ball in balls">
+        <transition name="drop" @before-enter="beforeDrop"
+                    @enter="dropping"
+                    @after-enter="afterDrop">
+          <div class="ball" v-show="ball.show">
+            <div class="inner inner-hook"></div>
+          </div>
+        </transition>
       </div>
     </div>
-    <div class="shopcart-list" v-show="listShow" transition="fold">
-      <div class="list-header">
-        <div class="title">购物车</div>
-        <div class="clean" @click="clean">清空</div>
+    <transition name="fold">
+      <div class="shopcart-list" v-show="listShow">
+        <div class="list-header">
+          <div class="title">购物车</div>
+          <div class="clean" @click="clean">清空</div>
+        </div>
+        <div class="list-content" ref="cartScroll">
+          <ul>
+            <li class="food" v-for="food in selectFoods">
+              <span class="name">{{food.name}}</span>
+              <div class="price"><span class="unit">￥</span>{{food.price * food.count}}</div>
+              <div class="cartcontrol-wrapper">
+                <cartcontrol @add="drop" :food="food"></cartcontrol>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="list-content" v-el:cart-scroll>
-        <ul>
-          <li class="food" v-for="food in selectFoods">
-            <span class="name">{{food.name}}</span>
-            <div class="price"><span class="unit">￥</span>{{food.price * food.count}}</div>
-            <div class="cartcontrol-wrapper">
-              <cartcontrol :food="food"></cartcontrol>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
+    </transition>
+    <transition name="fade">
+      <div class="list-mask" v-show="listShow" @click="toggleList"></div>
+    </transition>
   </div>
-  <div class="list-mask" v-show="listShow" transition="fade" @click="toggleList"></div>
 </template>
 
 <script type="text/ecmascript-6">
-  import cartcontrol from 'components/cartcontrol/cartcontrol.vue'
+  import cartcontrol from '@/components/cartcontrol/cartcontrol.vue'
   import BScroll from 'better-scroll'
 
   export default {
@@ -61,6 +71,49 @@
       }
     },
     methods: {
+      // el为挂载transition属性的dom元素
+      // beforeEnter定义进入动画前的状态
+      beforeDrop (el) {
+        let count = this.balls.length
+        while (count--) {
+          let ball = this.balls[count]
+          if (ball.show) {
+            let rect = ball.el.getBoundingClientRect()
+            // x,y 为将要运动的矢量值(带方向)
+            let x = rect.left - 32
+            // translate3d中y轴向下为正值
+            let y = -(window.innerHeight - rect.top - 22)
+            // ?
+            el.style.display = ''
+            // 可用jQuery?
+            el.style.webkitTransform = `translate3d(0,${y}px,0)`
+            el.style.transform = `translate3d(0,${y}px,0)`
+            let inner = el.getElementsByClassName('inner-hook')[0]
+            inner.style.webkitTransform = `translate3d(${x}px,0,0)`
+            inner.style.transform = `translate3d(${x}px,0,0)`
+          }
+        }
+      },
+      dropping (el, done) {
+        // 触发浏览器重绘 作用？
+        /* eslint-disable no-unused-vars */
+        let rf = el.offsetHeight
+        this.$nextTick(() => {
+          el.style.webkitTransform = 'translate3d(0,0,0)'
+          el.style.transform = 'translate3d(0,0,0)'
+          let inner = el.getElementsByClassName('inner-hook')[0]
+          inner.style.webkitTransform = 'translate3d(0,0,0)'
+          inner.style.transform = 'translate3d(0,0,0)'
+          el.addEventListener('transitionend', done)
+        })
+      },
+      afterDrop (el) {
+        let ball = this.dropBalls.shift()
+        if (ball) {
+          ball.show = false
+          el.style.display = 'none'
+        }
+      },
       pay () {
         if (this.totalPrice < this.minPrice) {
           return
@@ -81,6 +134,7 @@
       // 暴露drop方法供父级组件goods调用
       // el为cartcontrol组件中的add按钮
       drop (el) {
+        console.log('shopcart.drop')
         for (let i = 0; i < this.balls.length; i++) {
           let ball = this.balls[i]
           if (!ball.show) {
@@ -90,53 +144,6 @@
             ball.el = el
             this.dropBalls.push(ball)
             return
-          }
-        }
-      }
-    },
-    // 配置drop动画
-    transitions: {
-      drop: {
-        // el为挂载transition属性的dom元素
-        // beforeEnter定义进入动画前的状态
-        beforeEnter (el) {
-          let count = this.balls.length
-          while (count--) {
-            let ball = this.balls[count]
-            if (ball.show) {
-              let rect = ball.el.getBoundingClientRect()
-              // x,y 为将要运动的矢量值(带方向)
-              let x = rect.left - 32
-              // translate3d中y轴向下为正值
-              let y = -(window.innerHeight - rect.top - 22)
-              // ?
-              el.style.display = ''
-              // 可用jQuery?
-              el.style.webkitTransform = `translate3d(0,${y}px,0)`
-              el.style.transform = `translate3d(0,${y}px,0)`
-              let inner = el.getElementsByClassName('inner-hook')[0]
-              inner.style.webkitTransform = `translate3d(${x}px,0,0)`
-              inner.style.transform = `translate3d(${x}px,0,0)`
-            }
-          }
-        },
-        enter (el) {
-          // 触发浏览器重绘 作用？
-          /* eslint-disable no-unused-vars */
-          let rf = el.offsetHeight
-          this.$nextTick(() => {
-            el.style.webkitTransform = 'translate3d(0,0,0)'
-            el.style.transform = 'translate3d(0,0,0)'
-            let inner = el.getElementsByClassName('inner-hook')[0]
-            inner.style.webkitTransform = 'translate3d(0,0,0)'
-            inner.style.transform = 'translate3d(0,0,0)'
-          })
-        },
-        afterEnter (el) {
-          let ball = this.dropBalls.shift()
-          if (ball) {
-            ball.show = false
-            el.style.display = 'none'
           }
         }
       }
@@ -168,7 +175,7 @@
         if (showed) {
           this.$nextTick(() => {
             if (!this.cartScroll) {
-              this.cartScroll = new BScroll(this.$els.cartScroll, {
+              this.cartScroll = new BScroll(this.$refs.cartScroll, {
                 // 设置为true则防止阻止原生点击事件
                 click: true
               })
@@ -231,7 +238,7 @@
       background-color #141d27
       font-size 0
       display flex
-      z-index 50
+      z-index 60
       position relative
       .content-left
         flex 1
@@ -246,7 +253,6 @@
           width 56px
           height 56px
           box-sizing border-box
-          z-index 60
           .num
             position absolute
             top 0px
@@ -307,31 +313,37 @@
             color rgb(255, 255, 255)
     .balls-container
       position fixed
+      width: 16px;
+      height: 16px;
       left 32px
       bottom 22px
+      font-size 0px
+      z-index 60
       .ball
-        z-index 200
-        &.drop-transition
-          transition all 0.5s cubic-bezier(0.49, -0.29, 0.75, 0.41)
-          .inner
-            display inline-block
-            width 16px
-            height 16px
-            border-radius 50%
-            background-color rgb(0, 160, 220)
-            transition all 0.5s linear
+        display inline-block
+        width 16px
+        height 16px
+        border-radius 50%
+        transition all .6s cubic-bezier(0.49, -0.29, 0.75, 0.41)
+        .inner
+          width 100%
+          height 100%
+          border-radius 50%
+          background-color rgb(0, 160, 220)
+          transition all .6s linear
     .shopcart-list
       position absolute
       top 0px
       left 0px
       color rgb(7, 17, 27)
-      z-index -1
+      z-index 50
       background-color rgb(255, 255, 255)
       width 100%
-      &.fold-transition
-        transition all 0.5s linear
+      transform translate3d(0, -100%, 0)
+      transition all .3s linear
+      &.fold-enter-active, &.fold-leave-active
         transform translate3d(0, -100%, 0)
-      &.fold-enter, &.fold-leave
+      &.fold-enter, &.fold-leave-to
         transform translate3d(0, 0, 0)
       .list-header
         height 40px
@@ -373,19 +385,20 @@
             position absolute
             right 0px
             top 12px
-  .list-mask
-    position fixed
-    top 0px
-    left 0px
-    width 100%
-    height 100%
-    z-index 40
-    backdrop-filter blur(10px)
-    &.fade-transition
-      transition all 0.5s
+    .list-mask
+      position fixed
+      top 0px
+      left 0px
+      width 100%
+      height 100%
+      z-index 40
       background-color rgba(7, 17, 27, 0.6)
-      opacity 1
-    &.fade-enter,&.fade-leave
-      opacity 0
-      background-color rgba(7, 17, 27, 0)
+      backdrop-filter blur(10px)
+      &.fade-enter-active, &.fade-leave-active
+        transition all 0.5s
+        background-color rgba(7, 17, 27, 0.6)
+        opacity 1
+      &.fade-enter,&.fade-leave-to
+        opacity 0
+        background-color rgba(7, 17, 27, 0)
 </style>
