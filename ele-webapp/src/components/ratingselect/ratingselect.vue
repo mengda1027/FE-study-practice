@@ -1,11 +1,11 @@
 <template>
   <div class="ratingselect">
     <div class="rating-type">
-      <span @click="select(2,$event)" class="all" :class="{'active':selectType === 2}">{{desc.all}}<span
+      <span @click="select(2,$event)" class="all" :class="{'active':selectTypeTemp === 2}">{{desc.all}}<span
         class="num">{{ratings.length}}</span></span>
-      <span class="positive" :class="{'active':selectType === 0}" @click="select(0,$event)">{{desc.positive}}<span
+      <span class="positive" :class="{'active':selectTypeTemp === 0}" @click="select(0,$event)">{{desc.positive}}<span
         class="num">{{positiveRatings.length}}</span></span>
-      <span class="negative" @click="select(1,$event)" :class="{'active':selectType === 1}">{{desc.negative}}<span
+      <span class="negative" @click="select(1,$event)" :class="{'active':selectTypeTemp === 1}">{{desc.negative}}<span
         class="num">{{negativeRatings.length}}</span></span>
     </div>
     <div class="switch" :class="{'on':onlyContent}" @click="toggleContent">
@@ -48,17 +48,23 @@
         }
       }
     },
+    data () {
+      return {
+        selectTypeTemp: this.selectType,
+        onlyContentTemp: this.onlyContent
+      }
+    },
     methods: {
       select (type, $event) {
         if (!$event._constructed) {
           return
         }
-        this.selectType = type
-        this.$dispatch('ratingtype.select', type)
+        this.selectTypeTemp = type
+        this.$emit('select', this.selectTypeTemp)
       },
       toggleContent () {
-        this.onlyContent = !this.onlyContent
-        this.$dispatch('content.toggle', this.onlyContent)
+        this.onlyContentTemp = !this.onlyContentTemp
+        this.$emit('toggle', this.onlyContentTemp)
       }
     },
     computed: {

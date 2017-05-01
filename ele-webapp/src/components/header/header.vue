@@ -29,43 +29,45 @@
     <div class="background-blur">
       <img :src="seller.avatar" alt="bg-blur">
     </div>
-    <div class="detail" v-show="detailShow" transition="fade">
-      <div class="detail-wrapper clearfix">
-        <div class="detail-main">
-          <div class="name">{{seller.name}}</div>
-          <div class="star-wrapper">
-            <star :size="48" :score="seller.score"></star>
-          </div>
-          <div class="title">
-            <div class="line"></div>
-            <div class="text">优惠信息</div>
-            <div class="line"></div>
-          </div>
-          <ul class="supports" v-if="seller.supports">
-            <li v-for="support in seller.supports">
-              <span class="icon" :class="classMap[support.type]"></span>
-              <span class="text">{{support.description}}</span>
-            </li>
-          </ul>
-          <div class="title">
-            <div class="line"></div>
-            <div class="text">商家公告</div>
-            <div class="line"></div>
-          </div>
-          <div class="bulletin">
-            <p class="content">{{seller.bulletin}}</p>
+    <transition name="fade">
+      <div class="detail" v-show="detailShow">
+        <div class="detail-wrapper clearfix">
+          <div class="detail-main">
+            <div class="name">{{seller.name}}</div>
+            <div class="star-wrapper">
+              <star :size="48" :score="seller.score"></star>
+            </div>
+            <div class="title">
+              <div class="line"></div>
+              <div class="text">优惠信息</div>
+              <div class="line"></div>
+            </div>
+            <ul class="supports" v-if="seller.supports">
+              <li v-for="support in seller.supports">
+                <span class="icon" :class="classMap[support.type]"></span>
+                <span class="text">{{support.description}}</span>
+              </li>
+            </ul>
+            <div class="title">
+              <div class="line"></div>
+              <div class="text">商家公告</div>
+              <div class="line"></div>
+            </div>
+            <div class="bulletin">
+              <p class="content">{{seller.bulletin}}</p>
+            </div>
           </div>
         </div>
+        <div class="detail-close" @click="hideDetail">
+          <i class="icon-close"></i>
+        </div>
       </div>
-      <div class="detail-close" @click="hideDetail">
-        <i class="icon-close"></i>
-      </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-  import star from 'components/star/star'
+  import star from '@/components/star/star'
 
   export default {
     props: {
@@ -215,12 +217,13 @@
       width 100%
       height 100%
       z-index 100
+      background rgba(7, 17, 27, 0.8)
       backdrop-filter blur(10px)
-      transition all 0.5s
-      &.fade-transition
+      &.fade-enter-active, &.fade-leave-active
+        transition all 0.5s
         opacity 1
         background rgba(7, 17, 27, 0.8)
-      &.fade-enter,&.fade-leave
+      &.fade-enter,&.fade-leave-to
         opacity 0
         background rgba(7, 17, 27, 0)
       .detail-wrapper
